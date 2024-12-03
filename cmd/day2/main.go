@@ -19,10 +19,16 @@ func main() {
 
 	reports := parseData(fp)
 
+	var safe int
 	for _, report := range reports {
-		fmt.Println(isSafe(report))
+		if isSafe(report) {
+			safe++
+		} else {
+			fmt.Println(report)
+		}
 	}
 
+	fmt.Println("day 2 part 1: ", safe)
 }
 
 func parseData(file io.Reader) [][]int {
@@ -47,7 +53,7 @@ func isSafe(report []int) bool {
 				return true
 			case report[i+1]-report[i] <= 0: // no change or decreasing is unsafe
 				return false
-			case (report[i+1]-report[i] <= 2) && (report[i+1]-report[i] > 0):
+			case (report[i+1]-report[i] <= 3) && (report[i+1]-report[i] > 0):
 				continue //change 1 or 2 is safe, keep going
 			default:
 				return false
@@ -61,7 +67,7 @@ func isSafe(report []int) bool {
 			return true
 		case report[i]-report[i+1] <= 0: // no change or increasing is unsafe
 			return false
-		case (report[i]-report[i+1] <= 2) && (report[i]-report[i+1] > 0):
+		case (report[i]-report[i+1] <= 3) && (report[i]-report[i+1] > 0):
 			continue //change of 1 or 2 is safe, keep going
 		default:
 			return false
