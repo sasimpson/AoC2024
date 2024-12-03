@@ -25,16 +25,14 @@ func main() {
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), "   ")
 		if len(line) == 2 {
-			a, err := strconv.Atoi(line[0])
+			err := appendInt(&a1, line[0])
 			if err != nil {
 				log.Fatal(err)
 			}
-			b, err := strconv.Atoi(line[1])
+			err = appendInt(&a2, line[1])
 			if err != nil {
 				log.Fatal(err)
 			}
-			a1 = append(a1, a)
-			a2 = append(a2, b)
 		}
 	}
 
@@ -53,4 +51,13 @@ func absInt(a, b int) int {
 		return b - a
 	}
 	return a - b
+}
+
+func appendInt(i *[]int, s string) error {
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return err
+	}
+	*i = append(*i, v)
+	return nil
 }
