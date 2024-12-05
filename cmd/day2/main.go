@@ -20,15 +20,21 @@ func main() {
 	reports := parseData(fp)
 
 	var safe int
+	var damper int
 	for _, report := range reports {
 		if isSafe(report) {
 			safe++
-		} else {
-			fmt.Println(report)
+			continue
 		}
-	}
 
+		if bruteForceDamper(report) {
+			damper++
+			continue
+		}
+
+	}
 	fmt.Println("day 2 part 1: ", safe)
+	fmt.Println("day 2 part 2: ", damper+safe)
 }
 
 func parseData(file io.Reader) [][]int {
@@ -45,32 +51,43 @@ func parseData(file io.Reader) [][]int {
 	return data
 }
 
+func avg(vals []int) int {
+	var sum int
+	for _, v := range vals {
+		sum = sum + v
+	}
+	return sum / len(vals)
+}
+
+func validateRisk(a, b int, inc bool) bool {
+	if inc {
+		return (b-a <= 3) && (b-a > 0)
+	}
+	return (a-b <= 3) && (a-b > 0)
+}
+
 func isSafe(report []int) bool {
-	if report[0] < report[1] { //increasing
-		for i := range report {
-			switch {
-			case i >= len(report)-1: // at the end, done, safe.
-				return true
-			case report[i+1]-report[i] <= 0: // no change or decreasing is unsafe
-				return false
-			case (report[i+1]-report[i] <= 3) && (report[i+1]-report[i] > 0):
-				continue //change 1 or 2 is safe, keep going
-			default:
-				return false
-			}
+	increasing := report[0] < avg(report)
+	for i := 1; i < len(report); i++ {
+		valid := validateRisk(report[i-1], report[i], increasing)
+		if !valid {
+			return false
 		}
 	}
-	// decreasing
-	for i := range report {
-		switch {
-		case i >= len(report)-1: // at the end, done, safe.
+	return true
+}
+
+func fix(pos int, report []int) []int {
+	newReport := make([]int, len(report)-1)
+	copy(newReport[:pos], report[:pos])
+	copy(newReport[pos:], report[pos+1:])
+	return newReport
+}
+
+func bruteForceDamper(report []int) bool {
+	for i := 0; i < len(report); i++ {
+		if isSafe(fix(i, report)) {
 			return true
-		case report[i]-report[i+1] <= 0: // no change or increasing is unsafe
-			return false
-		case (report[i]-report[i+1] <= 3) && (report[i]-report[i+1] > 0):
-			continue //change of 1 or 2 is safe, keep going
-		default:
-			return false
 		}
 	}
 	return false
