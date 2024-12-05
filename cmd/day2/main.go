@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	fp, err := os.Open("data2a.txt")
+	fp, err := os.Open("cmd/day2/data2a.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -20,27 +20,21 @@ func main() {
 	reports := parseData(fp)
 
 	var safe int
-	var rescan int
+	var damper int
 	for _, report := range reports {
-		i := isSafe(report)
-		if i == -1 {
+		if isSafe(report) {
 			safe++
-		} else {
-			dampedReport := make([]int, len(report)-1)
-			copy(dampedReport, report[:i])
-			copy(dampedReport, report[i:])
-			j := isSafe(dampedReport)
-			if j == -1 {
-				rescan++
-			} else {
-				fmt.Println(report, dampedReport)
-			}
+			continue
+		}
+
+		if bruteForceDamper(report) {
+			damper++
+			continue
 		}
 
 	}
-
 	fmt.Println("day 2 part 1: ", safe)
-	fmt.Println("day 2 part 2: ", rescan+safe)
+	fmt.Println("day 2 part 2: ", damper+safe)
 }
 
 func parseData(file io.Reader) [][]int {
@@ -69,21 +63,32 @@ func validateRisk(a, b int, inc bool) bool {
 	if inc {
 		return (b-a <= 3) && (b-a > 0)
 	}
-
 	return (a-b <= 3) && (a-b > 0)
 }
 
-func isSafe(report []int) int {
+func isSafe(report []int) bool {
 	increasing := report[0] < avg(report)
-
 	for i := 1; i < len(report); i++ {
-
 		valid := validateRisk(report[i-1], report[i], increasing)
-
 		if !valid {
-			return i
+			return false
 		}
 	}
+	return true
+}
 
-	return -1
+func fix(pos int, report []int) []int {
+	newReport := make([]int, len(report)-1)
+	copy(newReport[:pos], report[:pos])
+	copy(newReport[pos:], report[pos+1:])
+	return newReport
+}
+
+func bruteForceDamper(report []int) bool {
+	for i := 0; i < len(report); i++ {
+		if isSafe(fix(i, report)) {
+			return true
+		}
+	}
+	return false
 }

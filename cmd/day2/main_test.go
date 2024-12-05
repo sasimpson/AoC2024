@@ -1,49 +1,45 @@
 package main
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
+	"strconv"
+	"strings"
 	"testing"
 )
 
 func Test_isSafe(t *testing.T) {
-	type args struct {
-		report []int
-	}
 	tests := []struct {
-		name string
-		args args
-		want bool
+		report string
+		want   bool
+		fixed  bool
 	}{
-		{
-			name: "valid increase",
-			args: args{report: []int{1, 2, 3, 5, 6, 8}},
-			want: true,
-		}, {
-			name: "valid decrease",
-			args: args{report: []int{9, 7, 6, 5, 4, 2}},
-			want: true,
-		}, {
-			name: "invalid decrease",
-			args: args{report: []int{9, 5, 4, 2}},
-			want: false,
-		}, {
-			name: "invalid increase",
-			args: args{report: []int{1, 2, 3, 6, 8}},
-			want: false,
-		}, {
-			name: "invalid no increase",
-			args: args{report: []int{1, 2, 3, 3, 6, 8}},
-			want: false,
-		}, {
-			name: "invalid no decrease",
-			args: args{report: []int{9, 5, 5, 4, 2}},
-			want: false,
-		},
+		{"7 6 4 2 1", true, true},                //0
+		{"1 2 7 8 9", false, false},              //1
+		{"9 7 6 2 1", false, false},              //2
+		{"1 3 2 4 5", false, true},               //3
+		{"8 6 4 4 1", false, true},               //4
+		{"1 3 6 7 9", true, true},                //5
+		{"2 1 2 3 4", false, true},               //6
+		{"1 2 3 5 5", false, true},               //7
+		{"10 9 8 7 7", false, true},              //8
+		{"10 9 7 7 7", false, false},             //9
+		{"1 6 7 8 9", false, true},               //10
+		{"29 28 27 25 26 25 22 20", false, true}, //11
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := isSafe(tt.args.report)
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("#%d", i), func(t *testing.T) {
+			line := strings.Split(tt.report, " ")
+			report := make([]int, len(line))
+			for i, v := range line {
+				report[i], _ = strconv.Atoi(v)
+			}
+			got := isSafe(report)
 			assert.Equal(t, tt.want, got)
+			if got == false {
+				gotFixed := bruteForceDamper(report)
+				assert.Equal(t, tt.fixed, gotFixed)
+			}
 		})
 	}
 }
