@@ -20,7 +20,7 @@ func main() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		splitLine := strings.Split(line, "")
-		data = append(lines, splitLine)
+		data = append(data, splitLine)
 	}
 
 	//patterns for search:
@@ -44,10 +44,11 @@ func main() {
 		X S
 	*/
 
-	fmt.Println(lines)
+	fmt.Println(data)
 }
 
-func searchForward(data *[][]string, search string, x, y int) bool {
+func searchForward(data [][]string, search string, x, y int) bool {
 	s := data[y][x : x+4]
-	return s == search
+	fmt.Println(s)
+	return false
 }
