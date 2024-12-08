@@ -52,21 +52,52 @@ func part2(data [][]string) {
 	fmt.Println("day 4 part 2", count)
 }
 
+// LRMas - Left to Right MAS
+//
+//	0 1 2
+//
+// 0 M . S
+// 1 . A .
+// 2 M . S
+// A's (1 <= x pos < len(data[y]) and (1 <= y pos < len(data))
+// M's in (x-1,y-1) and (x-1,y+1)
 func LRMas(data [][]string, x, y int, dir int) bool {
-	//  012
-	//0 M S
-	//1  A
-	//2 M S
-	//A's (1 <= x pos < len(data[y]) and (1 <= y pos < len(data))
-	//M's in (x-1,y-1) and (x-1,y+1)
-	var count int
-	if (x >= 1 && x < len(data[y])-2) && (y >= 1 && y < len(data)-2) {
-		if searchDiagonalDown(data, "MAS", x-1, y-1, dir) &&
-			searchDiagonalUp(data, "MAS", x-1, y+1, dir) {
-			count++
+	if (x >= 1 && x < len(data[y])-1) && (y >= 1 && y < len(data)-1) {
+		var modx, mody []int
+		switch {
+		case dir > 0:
+			modx = []int{-1, -1}
+			mody = []int{-1, 1}
+		case dir < 0:
+			modx = []int{1, 1}
+			mody = []int{1, -1}
+		}
+
+		if searchDiagonalDown(data, "MAS", x+modx[0], y+mody[0], dir) &&
+			searchDiagonalUp(data, "MAS", x+modx[0], y+mody[1], dir) {
+			return true
 		}
 	}
-	return count > 0
+	return false
+}
+
+// TBMas - Top to Bottom MAS
+//
+//	0 1 2
+//
+// 0 M . M
+// 1 . A .
+// 2 S . S
+// A's (1 <=x pos < len(data[y]) and (1 <= y pos < len(data))
+// M's in DD(x-1, y-1, +dir) and DU(x+1, y-1 -dir)
+func TBMas(data [][]string, x, y int, dir int) bool {
+	if (x >= 1 && x < len(data[y])-1) && (y >= 1 && y < len(data)-1) {
+		if searchDiagonalDown(data, "MAS", x-1, y-1, 1) &&
+			searchDiagonalUp(data, "MAS", x+1, y-1, -1) {
+			return true
+		}
+	}
+	return false
 }
 
 func searchPosition(data [][]string, search string, x, y int) int {
@@ -155,9 +186,11 @@ func searchVertical(data [][]string, search string, x, y, dir int) bool {
 
 func searchDiagonalDown(data [][]string, search string, x, y, dir int) bool {
 	searchLen := len(search)
+	lenX := len(data[y])
+	lenY := len(data)
 	s := make([]string, searchLen)
 	if dir >= 1 {
-		if len(data[y]) > x+(searchLen-1) && len(data) > y+(searchLen-1) {
+		if lenX > x+(searchLen-1) && lenY > searchLen-1 {
 			for i := 0; i < searchLen; i++ {
 				s[i] = data[y+i][x+i]
 			}
