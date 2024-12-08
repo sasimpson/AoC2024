@@ -2,22 +2,21 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 )
 
-//var searchBlob = `MMMSXXMASM
-//MSAMXMSMSA
-//AMXSXMAAMM
-//MSAMASMSMX
-//XMASAMXAMM
-//XXAMMXXAMA
-//SMSMSASXSS
-//SAXAMASAAA
-//MAMMMXMMMM
-//MXMXAXMASX`
+var searchBlob = `MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX`
 
 //var searchBlob = `.M.S......
 //..A..MSMS.
@@ -38,9 +37,10 @@ import (
 //.A.A.A.
 //S..S..S`
 
-var searchBlob = `MMSMM
-.AAA.
-MSSSM`
+//var searchBlob = `
+//MMSMMS.S
+//.AAA..A.
+//MSSSMM.M`
 
 func Test_searchPosition(t *testing.T) {
 	scanner := bufio.NewScanner(strings.NewReader(searchBlob))
@@ -51,9 +51,7 @@ func Test_searchPosition(t *testing.T) {
 	}
 	var count int
 	for y := 0; y < len(data); y++ {
-		//fmt.Println("Checking line", y)
 		for x := 0; x < len(data[y]); x++ {
-			//fmt.Println("Checking position", y, x, data[y][x])
 			if data[y][x] == "X" {
 				count += searchPosition(data, "XMAS", x, y)
 			}
@@ -71,10 +69,8 @@ func Test_searchMas(t *testing.T) {
 	}
 	var count int
 	for y := 0; y < len(data); y++ {
-		//fmt.Println("Checking line", y)
 		for x := 0; x < len(data[y]); x++ {
 			if data[y][x] == "A" {
-				fmt.Println("found A at", x, y)
 				if LRMas(data, x, y, 1) {
 					count++
 				}
@@ -82,6 +78,9 @@ func Test_searchMas(t *testing.T) {
 					count++
 				}
 				if TBMas(data, x, y, 1) {
+					count++
+				}
+				if TBMas(data, x, y, -1) {
 					count++
 				}
 			}

@@ -24,7 +24,7 @@ func main() {
 	}
 
 	part1(data)
-	//part2(data)
+	part2(data)
 }
 
 func part1(data [][]string) {
@@ -44,8 +44,18 @@ func part2(data [][]string) {
 	for y := 0; y < len(data); y++ {
 		for x := 0; x < len(data[0]); x++ {
 			if data[y][x] == "A" {
-				fmt.Println("found an A at", x, y)
-				count = 0
+				if LRMas(data, x, y, 1) {
+					count++
+				}
+				if LRMas(data, x, y, -1) {
+					count++
+				}
+				if TBMas(data, x, y, 1) {
+					count++
+				}
+				if TBMas(data, x, y, -1) {
+					count++
+				}
 			}
 		}
 	}
@@ -72,9 +82,8 @@ func LRMas(data [][]string, x, y int, dir int) bool {
 			modx = []int{1, 1}
 			mody = []int{1, -1}
 		}
-
 		if searchDiagonalDown(data, "MAS", x+modx[0], y+mody[0], dir) &&
-			searchDiagonalUp(data, "MAS", x+modx[0], y+mody[1], dir) {
+			searchDiagonalUp(data, "MAS", x+modx[1], y+mody[1], dir) {
 			return true
 		}
 	}
@@ -92,8 +101,17 @@ func LRMas(data [][]string, x, y int, dir int) bool {
 // M's in DD(x-1, y-1, +dir) and DU(x+1, y-1 -dir)
 func TBMas(data [][]string, x, y int, dir int) bool {
 	if (x >= 1 && x < len(data[y])-1) && (y >= 1 && y < len(data)-1) {
-		if searchDiagonalDown(data, "MAS", x-1, y-1, 1) &&
-			searchDiagonalUp(data, "MAS", x+1, y-1, -1) {
+		var modx, mody []int
+		switch {
+		case dir > 0: //top to bottom
+			modx = []int{x - 1, x + 1}
+			mody = []int{y - 1, y - 1}
+		case dir < 0: //bottom to top
+			modx = []int{x + 1, x - 1}
+			mody = []int{y + 1, y + 1}
+		}
+		if searchDiagonalDown(data, "MAS", modx[0], mody[0], dir) &&
+			searchDiagonalUp(data, "MAS", modx[1], mody[1], -dir) {
 			return true
 		}
 	}
@@ -103,35 +121,35 @@ func TBMas(data [][]string, x, y int, dir int) bool {
 func searchPosition(data [][]string, search string, x, y int) int {
 	var count int
 	if searchHorizontal(data, search, x, y, 1) {
-		fmt.Println("found H+ at", y, x)
+		//fmt.Println("found H+ at", y, x)
 		count++
 	}
 	if searchHorizontal(data, search, x, y, -1) {
-		fmt.Println("found H- at", y, x)
+		//fmt.Println("found H- at", y, x)
 		count++
 	}
 	if searchVertical(data, search, x, y, 1) {
-		fmt.Println("found V+ at", y, x)
+		//fmt.Println("found V+ at", y, x)
 		count++
 	}
 	if searchVertical(data, search, x, y, -1) {
-		fmt.Println("found V- at", y, x)
+		//fmt.Println("found V- at", y, x)
 		count++
 	}
 	if searchDiagonalDown(data, search, x, y, 1) {
-		fmt.Println("found DD+ at", y, x)
+		//fmt.Println("found DD+ at", y, x)
 		count++
 	}
 	if searchDiagonalDown(data, search, x, y, -1) {
-		fmt.Println("found DD- at", y, x)
+		//fmt.Println("found DD- at", y, x)
 		count++
 	}
 	if searchDiagonalUp(data, search, x, y, 1) {
-		fmt.Println("found UD+ at", y, x)
+		//fmt.Println("found UD+ at", y, x)
 		count++
 	}
 	if searchDiagonalUp(data, search, x, y, -1) {
-		fmt.Println("found UD- at", y, x)
+		//fmt.Println("found UD- at", y, x)
 		count++
 	}
 	return count
@@ -190,7 +208,7 @@ func searchDiagonalDown(data [][]string, search string, x, y, dir int) bool {
 	lenY := len(data)
 	s := make([]string, searchLen)
 	if dir >= 1 {
-		if lenX > x+(searchLen-1) && lenY > searchLen-1 {
+		if lenX > x+(searchLen-1) && lenY > y+searchLen-1 {
 			for i := 0; i < searchLen; i++ {
 				s[i] = data[y+i][x+i]
 			}
