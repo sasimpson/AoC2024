@@ -20,13 +20,34 @@ type update struct {
 	pages []int
 }
 
-func (u update) checkRules(rules map[int][]rule) {
+func (u update) checkRules(rules map[int][]rule) bool {
 	fmt.Println("Checking rules for", u)
-	for _, page := range u.pages {
-		fmt.Printf("%#v\n", rules[page])
+
+	//u.pages has each page we need to check
+	for i, currentPage := range u.pages {
+		// if the page has a ruleset
+		if currentRules, ok := rules[currentPage]; ok {
+			for _, rule := range currentRules {
+				//going to look through the pages preceeding our rule, if "b" is in there, it should fail
+				for _, p := range u.pages[:i] {
+					if rule.b == p {
+						return false
+					}
+				}
+				//next we want to make sure the rule "b" is after our "a" position.
+				for j, p := range u.pages[i:] {
+					if rule.b == p {
+						if i > j {
+							return false
+						}
+					}
+				}
+			}
+		}
 	}
-	fmt.Println()
-	fmt.Println()
+	//rules[page] will have each rule for the current page
+
+	return true
 }
 
 func main() {

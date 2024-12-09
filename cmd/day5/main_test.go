@@ -5,6 +5,8 @@ import (
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_loadRules(t *testing.T) {
@@ -92,6 +94,49 @@ func Test_loadFile(t *testing.T) {
 			if !reflect.DeepEqual(gotb, tt.wantb) {
 				t.Errorf("loadFile() got1 = %v, want %v", gotb, tt.wantb)
 			}
+		})
+	}
+}
+
+func Test_update_checkRules(t *testing.T) {
+	type fields struct {
+	}
+	type args struct {
+	}
+	tests := []struct {
+		name  string
+		pages []int
+		rules map[int][]rule
+		want  bool
+	}{
+		{
+			name:  "valid rule test #1",
+			pages: []int{11, 54, 23, 6},
+			rules: map[int][]rule{
+				11: []rule{{11, 54}, {11, 23}},
+				54: []rule{{54, 6}},
+				23: []rule{{23, 6}},
+			},
+			want: true,
+		}, {
+			name:  "rule violation, test #1",
+			pages: []int{11, 54, 23, 6},
+			rules: map[int][]rule{
+				11: []rule{{11, 54}, {11, 23}},
+				54: []rule{{54, 6}},
+				23: []rule{{6, 23}},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := update{
+				pages: tt.pages,
+			}
+
+			got := u.checkRules(tt.rules)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
