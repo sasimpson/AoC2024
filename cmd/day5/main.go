@@ -3,42 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 )
-
-func main() {
-	fp, err := os.Open("cmd/day5/data5.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer fp.Close()
-
-	scanner := bufio.NewScanner(fp)
-	var rules [][]string
-	var updates [][]string
-	for scanner.Scan() {
-		line := scanner.Bytes()
-		if ok, err := regexp.Match(`\|`, line); ok && err == nil {
-			rules = append(rules, strings.Split(string(line), "|"))
-		}
-		if ok, err := regexp.Match(`,`, line); ok && err == nil {
-			updates = append(updates, strings.Split(string(line), ","))
-		}
-	}
-
-	//for _, r := range rules {
-	//	fmt.Println(r)
-	//}
-	ruleChart := loadRules(rules)
-	fmt.Println(ruleChart[22])
-	for _, update := range updates {
-		fmt.Println(update)
-	}
-}
 
 type rule struct {
 	a int
@@ -47,6 +18,49 @@ type rule struct {
 
 type update struct {
 	pages []int
+}
+
+func (u update) checkRules(rules map[int][]rule) {
+	fmt.Println("Checking rules for", u)
+	for _, page := range u.pages {
+		fmt.Printf("%#v\n", rules[page])
+	}
+	fmt.Println()
+	fmt.Println()
+}
+
+func main() {
+	fp, err := os.Open("cmd/day5/data5.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fp.Close()
+	rules, data := loadFile(fp)
+
+	ruleChart := loadRules(rules)
+	//fmt.Println(ruleChart[22])
+	updates := loadUpdates(data)
+	//fmt.Println(updates)
+
+	for _, u := range updates {
+		u.checkRules(ruleChart)
+	}
+}
+
+func loadFile(file io.Reader) ([][]string, [][]string) {
+	scanner := bufio.NewScanner(file)
+	var rules [][]string
+	var data [][]string
+	for scanner.Scan() {
+		line := scanner.Bytes()
+		if ok, err := regexp.Match(`\|`, line); ok && err == nil {
+			rules = append(rules, strings.Split(string(line), "|"))
+		}
+		if ok, err := regexp.Match(`,`, line); ok && err == nil {
+			data = append(data, strings.Split(string(line), ","))
+		}
+	}
+	return rules, data
 }
 
 func loadRules(rules [][]string) map[int][]rule {
@@ -66,5 +80,14 @@ func loadRules(rules [][]string) map[int][]rule {
 
 func loadUpdates(data [][]string) []update {
 	var updates []update
+	for _, line := range data {
+		var u update
+		for _, x := range line {
+			page, _ := strconv.Atoi(x)
+			u.pages = append(u.pages, page)
+		}
+		updates = append(updates, u)
+	}
+
 	return updates
 }
