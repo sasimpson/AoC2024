@@ -45,6 +45,10 @@ type rule struct {
 	b int
 }
 
+type update struct {
+	pages []int
+}
+
 func loadRules(rules [][]string) map[int][]rule {
 	ruleChart := make(map[int][]rule)
 	for _, r := range rules {
@@ -58,4 +62,9 @@ func loadRules(rules [][]string) map[int][]rule {
 		ruleChart[a] = append(ruleChart[a], x)
 	}
 	return ruleChart
+}
+
+func loadUpdates(data [][]string) []update {
+	var updates []update
+	return updates
 }
