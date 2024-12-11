@@ -26,7 +26,6 @@ func (u update) checkRules(rules map[int][]rule) bool {
 	for _, currentPage := range u.pages {
 		aidx := slices.Index(u.pages, currentPage)
 		if aidx == -1 {
-			fmt.Println("a value not found, returning true")
 			continue
 		}
 		//if the page is not in the rules, we're good for this one
@@ -45,6 +44,25 @@ func (u update) checkRules(rules map[int][]rule) bool {
 	}
 
 	return true
+}
+
+func (u update) fixPages(rules map[int][]rule) {
+	for _, currentPage := range u.pages{
+		aidx := slices.Index(u.pages, currentPage)
+		if aidx == -1 {
+			continue
+		}
+		for _, rule := range rules[currentPage] {
+			bidx := slices.index(u.pages, rule.b)
+			if bidx == -1 {
+				continue
+			}
+			if aidx > bidx {
+				//mv pages[bidx] to pages[aidx+1]
+				val := pages[bidx]
+
+			}
+	
 }
 
 func (u update) middlePage() int {
@@ -75,7 +93,8 @@ func main() {
 			//fmt.Println("passed", u)
 			count++
 			sum += u.middlePage()
-		}
+		} else {
+			u.fixPages(ruleChart)
 	}
 	fmt.Println("number of valid updates", count)
 	fmt.Println("middle page sum", sum)
