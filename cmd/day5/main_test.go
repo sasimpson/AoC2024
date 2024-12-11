@@ -52,9 +52,9 @@ func Test_loadUpdates(t *testing.T) {
 			name: "example 1",
 			data: [][]string{{"75", "47", "61", "53", "29"}, {"97", "61", "53", "29", "13"}, {"75", "29", "13"}},
 			want: []update{
-				{[]int{75, 47, 61, 53, 29}},
-				{[]int{97, 61, 53, 29, 13}},
-				{[]int{75, 29, 13}},
+				{pages: []int{75, 47, 61, 53, 29}},
+				{pages: []int{97, 61, 53, 29, 13}},
+				{pages: []int{75, 29, 13}},
 			},
 		},
 	}
@@ -99,19 +99,15 @@ func Test_loadFile(t *testing.T) {
 }
 
 func Test_update_checkRules(t *testing.T) {
-	type fields struct {
-	}
-	type args struct {
-	}
 	tests := []struct {
-		name  string
-		pages []int
-		rules map[int][]rule
-		want  bool
+		name   string
+		update update
+		rules  map[int][]rule
+		want   bool
 	}{
 		{
-			name:  "valid rule test #1",
-			pages: []int{11, 54, 23, 6},
+			name:   "valid rule test #1",
+			update: update{pages: []int{11, 54, 23, 6}},
 			rules: map[int][]rule{
 				11: []rule{{11, 54}, {11, 23}},
 				54: []rule{{54, 6}},
@@ -119,22 +115,33 @@ func Test_update_checkRules(t *testing.T) {
 			},
 			want: true,
 		}, {
-			name:  "rule violation, test #1",
-			pages: []int{11, 54, 23, 6},
+			name:   "rule violation, test #1",
+			update: update{pages: []int{11, 54, 23, 6}},
 			rules: map[int][]rule{
 				11: []rule{{11, 54}, {11, 23}},
 				54: []rule{{54, 6}},
-				23: []rule{{6, 23}},
+				6:  []rule{{6, 23}},
 			},
 			want: false,
+		}, {
+			name:   "valid rule test #2",
+			update: update{pages: []int{78, 35, 41, 17, 49, 11, 23, 53, 83}},
+			rules: map[int][]rule{
+				78: {{78, 53}, {78, 23}, {78, 83}, {78, 41}, {78, 17}, {78, 49}, {78, 11}, {78, 35}},
+				35: {{35, 53}, {35, 17}, {35, 41}, {35, 83}, {35, 23}, {35, 49}, {35, 11}},
+				41: {{41, 23}, {41, 17}, {41, 83}, {41, 11}, {41, 53}, {41, 49}},
+				17: {{17, 23}, {17, 53}, {17, 11}, {17, 83}, {17, 49}},
+				49: {{49, 53}, {49, 83}, {49, 23}, {49, 11}},
+				11: {{11, 53}, {11, 23}, {11, 83}},
+				23: {{23, 53}, {23, 83}},
+				53: {{53, 83}},
+			},
+			want: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u := update{
-				pages: tt.pages,
-			}
-
+			u := tt.update
 			got := u.checkRules(tt.rules)
 			assert.Equal(t, tt.want, got)
 		})

@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -17,37 +18,37 @@ type rule struct {
 }
 
 type update struct {
-	pages []int
+	pages  []int
+	status bool
 }
 
 func (u update) checkRules(rules map[int][]rule) bool {
-	fmt.Println("Checking rules for", u)
-
-	//u.pages has each page we need to check
-	for i, currentPage := range u.pages {
-		// if the page has a ruleset
-		if currentRules, ok := rules[currentPage]; ok {
-			for _, rule := range currentRules {
-				//going to look through the pages preceeding our rule, if "b" is in there, it should fail
-				for _, p := range u.pages[:i] {
-					if rule.b == p {
-						return false
-					}
-				}
-				//next we want to make sure the rule "b" is after our "a" position.
-				for j, p := range u.pages[i:] {
-					if rule.b == p {
-						if i > j {
-							return false
-						}
-					}
-				}
+	for _, currentPage := range u.pages {
+		aidx := slices.Index(u.pages, currentPage)
+		if aidx == -1 {
+			fmt.Println("a value not found, returning true")
+			continue
+		}
+		//if the page is not in the rules, we're good for this one
+		//if any rule is violated, this is false.
+		for _, rule := range rules[currentPage] {
+			bidx := slices.Index(u.pages, rule.b)
+			if bidx == -1 {
+				continue
+			}
+			// if the b in the rule is not in the pages, move on.
+			//fmt.Printf("a: %v, b: %v, currentPage: %d, rule: %v, update: %v\n", aidx, bidx, currentPage, rule, u)
+			if aidx > bidx {
+				return false
 			}
 		}
 	}
-	//rules[page] will have each rule for the current page
 
 	return true
+}
+
+func (u update) middlePage() int {
+	return u.pages[len(u.pages)/2]
 }
 
 func main() {
@@ -59,13 +60,25 @@ func main() {
 	rules, data := loadFile(fp)
 
 	ruleChart := loadRules(rules)
-	//fmt.Println(ruleChart[22])
 	updates := loadUpdates(data)
-	//fmt.Println(updates)
 
-	for _, u := range updates {
-		u.checkRules(ruleChart)
+	for i, u := range updates {
+		if u.checkRules(ruleChart) {
+			updates[i].status = true
+			fmt.Println(u)
+		}
 	}
+	var count int
+	var sum int
+	for _, u := range updates {
+		if u.status {
+			//fmt.Println("passed", u)
+			count++
+			sum += u.middlePage()
+		}
+	}
+	fmt.Println("number of valid updates", count)
+	fmt.Println("middle page sum", sum)
 }
 
 func loadFile(file io.Reader) ([][]string, [][]string) {
