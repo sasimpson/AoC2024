@@ -47,22 +47,24 @@ func (u update) checkRules(rules map[int][]rule) bool {
 }
 
 func (u update) fixPages(rules map[int][]rule) {
-	for _, currentPage := range u.pages{
+	for _, currentPage := range u.pages {
 		aidx := slices.Index(u.pages, currentPage)
 		if aidx == -1 {
 			continue
 		}
 		for _, rule := range rules[currentPage] {
-			bidx := slices.index(u.pages, rule.b)
+			bidx := slices.Index(u.pages, rule.b)
 			if bidx == -1 {
 				continue
 			}
 			if aidx > bidx {
 				//mv pages[bidx] to pages[aidx+1]
-				val := pages[bidx]
-
+				val := u.pages[bidx]
+				x := slices.Delete(u.pages, bidx, bidx+1)
+				u.pages = slices.Insert(x, aidx, val)
 			}
-	
+		}
+	}
 }
 
 func (u update) middlePage() int {
@@ -83,21 +85,26 @@ func main() {
 	for i, u := range updates {
 		if u.checkRules(ruleChart) {
 			updates[i].status = true
-			fmt.Println(u)
 		}
 	}
 	var count int
 	var sum int
+	var fixSum int
 	for _, u := range updates {
 		if u.status {
-			//fmt.Println("passed", u)
 			count++
 			sum += u.middlePage()
 		} else {
+			fmt.Println("before", u.pages)
 			u.fixPages(ruleChart)
+			fmt.Println("after", u.pages)
+			fixSum += u.middlePage()
+		}
 	}
 	fmt.Println("number of valid updates", count)
-	fmt.Println("middle page sum", sum)
+	fmt.Println("part 1 sum", sum)
+	fmt.Println("part 2 fix sum", fixSum)
+
 }
 
 func loadFile(file io.Reader) ([][]string, [][]string) {

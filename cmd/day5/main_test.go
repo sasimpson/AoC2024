@@ -9,10 +9,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var testRules = map[int][]rule{
+	47: {{47, 53},
+		{47, 29},
+		{47, 61},
+		{47, 13}},
+	97: {{97, 13},
+		{97, 61},
+		{97, 47},
+		{97, 29},
+		{97, 53},
+		{97, 75}},
+	75: {{75, 29},
+		{75, 53},
+		{75, 61},
+		{75, 13},
+		{75, 47}},
+	61: {{61, 13},
+		{61, 53},
+		{61, 29}},
+	29: {{29, 13}},
+	53: {{53, 29},
+		{53, 13}}}
+
 func Test_loadRules(t *testing.T) {
-	type args struct {
-		rules [][]string
-	}
 	tests := []struct {
 		name  string
 		rules [][]string
@@ -21,23 +41,17 @@ func Test_loadRules(t *testing.T) {
 		{
 			name: "example 1",
 			rules: [][]string{
-				{"47", "53"}, {"97", "13"}, {"97", "61"}, {"97", "47"}, {"75", "29"}, {"61", "13"}, {"75", "53"}, {"29", "13"}, {"97", "29"}, {"53", "29"},
+				{"47", "53"}, {"97", "13"}, {"97", "61"}, {"97", "47"}, {"75", "29"}, {"61", "13"}, {"75", "53"},
+				{"29", "13"}, {"97", "29"}, {"53", "29"}, {"61", "53"}, {"97", "53"}, {"61", "29"}, {"47", "13"},
+				{"75", "47"}, {"97", "75"}, {"47", "61"}, {"75", "61"}, {"47", "29"}, {"75", "13"}, {"53", "13"},
 			},
-			want: map[int][]rule{
-				47: {{47, 53}},
-				97: {{97, 13}, {97, 61}, {97, 47}, {97, 29}},
-				75: {{75, 29}, {75, 53}},
-				61: {{61, 13}},
-				29: {{29, 13}},
-				53: {{53, 29}},
-			},
+			want: testRules,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := loadRules(tt.rules); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("loadRules() = %v, want %v", got, tt.want)
-			}
+			got := loadRules(tt.rules)
+			assert.EqualValues(t, tt.want, got)
 		})
 	}
 }
@@ -109,18 +123,18 @@ func Test_update_checkRules(t *testing.T) {
 			name:   "valid rule test #1",
 			update: update{pages: []int{11, 54, 23, 6}},
 			rules: map[int][]rule{
-				11: []rule{{11, 54}, {11, 23}},
-				54: []rule{{54, 6}},
-				23: []rule{{23, 6}},
+				11: {{11, 54}, {11, 23}},
+				54: {{54, 6}},
+				23: {{23, 6}},
 			},
 			want: true,
 		}, {
 			name:   "rule violation, test #1",
 			update: update{pages: []int{11, 54, 23, 6}},
 			rules: map[int][]rule{
-				11: []rule{{11, 54}, {11, 23}},
-				54: []rule{{54, 6}},
-				6:  []rule{{6, 23}},
+				11: {{11, 54}, {11, 23}},
+				54: {{54, 6}},
+				6:  {{6, 23}},
 			},
 			want: false,
 		}, {
@@ -144,6 +158,46 @@ func Test_update_checkRules(t *testing.T) {
 			u := tt.update
 			got := u.checkRules(tt.rules)
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_update_fixPages(t *testing.T) {
+	tests := []struct {
+		name   string
+		update update
+		rules  map[int][]rule
+		want   update
+	}{
+		{
+			name:   "valid rule test #1",
+			update: update{pages: []int{11, 54, 23, 6}},
+			rules: map[int][]rule{
+				54: {{54, 11}},
+			},
+			want: update{pages: []int{54, 11, 23, 6}},
+		}, {
+			name:   "valid rule test #2",
+			update: update{pages: []int{75, 97, 47, 61, 53}},
+			rules:  testRules,
+			want:   update{pages: []int{97, 75, 47, 61, 53}},
+		}, {
+			name:   "valid rule test #3",
+			update: update{pages: []int{61, 13, 29}},
+			rules:  testRules,
+			want:   update{pages: []int{61, 29, 13}},
+		}, {
+			name:   "valid rule test #4",
+			update: update{pages: []int{97, 13, 75, 29, 47}},
+			rules:  testRules,
+			want:   update{pages: []int{97, 75, 47, 29, 13}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := tt.update
+			u.fixPages(tt.rules)
+			assert.EqualValues(t, tt.want, u)
 		})
 	}
 }
